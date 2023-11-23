@@ -1,0 +1,28 @@
+FROM julia:latest
+
+# Install SSH server
+RUN apt-get update && \
+    apt-get install -y openssh-server
+
+RUN ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa && \
+	mkdir -p /var/run/sshd && \
+	echo 'root:root' | chpasswd && \
+	sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+	sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+RUN echo "cd /opt/app" >> ~/.bashrc
+
+
+# Copy manager SSH public key
+COPY ./.keys/manager_rsa.pub /root/.ssh/authorized_keys
+RUN chmod 600 /root/.ssh/authorized_keys
+
+RUN julia -e 'using Pkg; Pkg.add("ProgressMeter"); Pkg.add("Statsd"); Pkg.add("JSON")'
+
+
+EXPOSE 22
+
+WORKDIR /opt/app
+
+# Start the SSH server
+CMD ["/usr/sbin/sshd", "-D"]
