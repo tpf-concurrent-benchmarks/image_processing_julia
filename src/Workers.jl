@@ -1,6 +1,6 @@
 module Workers
 
-export worker1_loop, worker2_loop, print_hello
+export worker_loop, format_handler, resolution_handler, size_handler
 
 
 function worker_loop(message_handler::Function, in_channel, out_channel)
@@ -12,18 +12,17 @@ function worker_loop(message_handler::Function, in_channel, out_channel)
 end
 
 
-# Worker 1 adds 1 to the number
-function worker1_loop(work_channel, result_channel)
-    worker_loop(work_channel, result_channel) do number
-        number + 1
-    end
+function format_handler( message::Int )
+    message+1
 end
 
-# Worker 2 adds 2 to the number
-function worker2_loop(work_channel, result_channel)
-    worker_loop(work_channel, result_channel) do number
-        number + 2
-    end
+function resolution_handler( message::Int )
+    message+2
 end
+    
+function size_handler( message::Int )
+    message-3
+end
+
 
 end

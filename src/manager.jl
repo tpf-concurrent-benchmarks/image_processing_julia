@@ -1,39 +1,16 @@
-include("WorkerInitialization.jl")
-
 using Distributed
 
+include("WorkerInitialization.jl")
+using .WorkerInitialization
 
 @everywhere include("Workers.jl")
-
 @everywhere using .Workers
 
 
-function get_channels()
-    work1_channel = RemoteChannel(()->Channel{Int}(32))
-    work2_channel = RemoteChannel(()->Channel{Int}(32))
-    result_channel = RemoteChannel(()->Channel{Int}(32))
 
-    close_channels = () -> begin
-        close(work1_channel)
-        close(work2_channel)
-        close(result_channel)
-    end
-
-    return work1_channel, work2_channel, result_channel, close_channels
-end
-
-function get_workers()
-    amount_of_workers = length(workers())
-    half = Int(ceil(amount_of_workers/2))
-    workers1 = workers()[1:half]
-    workers2 = workers()[half+1:amount_of_workers]
-
-    return workers1, workers2
-end
-
-function workers_do( f::Function, workers::Array, args... )
+function workers_start( workers::Array, handler::Function, in_channel::RemoteChannel, out_channel::RemoteChannel )
     for p in workers
-        remote_do(f, p, args...)
+        remote_do( worker_loop, p, handler, in_channel, out_channel)
     end
 end
 
@@ -54,17 +31,23 @@ end
     
 function main()
     
-    work1_channel, work2_channel, result_channel, close_channels = get_channels()
-    workers1, workers2 = get_workers()
+    format_channel, resolution_channel, size_channel, result_channel, close_channels = get_channels()
+    format_workers, resolution_workers, size_workers, close_workers = get_workers()
 
-    workers_do( worker1_loop, workers1, work1_channel, work2_channel )
-    workers_do( worker2_loop, workers2, work2_channel, result_channel )
+    # Start Format workers
+    workers_start( format_workers, format_handler, format_channel, resolution_channel )
     
-    send_work( work1_channel )
-
+    # Start Resolution workers
+    workers_start( resolution_workers, resolution_handler, resolution_channel, size_channel )
+    
+    # Start Size workers
+    workers_start( size_workers, size_handler, size_channel, result_channel )
+    
+    send_work( format_channel )
     await_results( result_channel )
 
     close_channels()
+    close_workers()
 end
 
 main()
