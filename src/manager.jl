@@ -1,12 +1,6 @@
-include("initialize.jl")
+include("WorkerInitialization.jl")
 
 using Distributed
-@everywhere begin
-	using Pkg
-	Pkg.add("ProgressMeter")
-	Pkg.instantiate()
-	using ProgressMeter
-end
 
 
 @everywhere include("Workers.jl")
