@@ -27,7 +27,7 @@ size_channel = RemoteChannel(()->Channel{Int}(32))
 result_channel = RemoteChannel(()->Channel{Int}(32))
 
 close_channels = () -> for chan in [format_channel, resolution_channel, size_channel, result_channel]
-        close(chan)
+    close(chan)
 end
 get_channels() = format_channel, resolution_channel, size_channel, result_channel, close_channels
 
