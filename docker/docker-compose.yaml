@@ -1,28 +1,49 @@
 version: "3.7"
 
+x-worker-template: &worker-template
+  image: julia_worker
+  tty: true
+  stdin_open: true
+  environment:
+    - LOCAL=${LOCAL}
+    - NODE_ID=worker_{{.Task.Slot}}
+    - TASK_SLOT={{.Task.Slot}}
+  command: /bin/bash -c "echo $$(hostname -i) > /opt/app/ips/ip_$$TASK_SLOT.txt && /usr/sbin/sshd -D"
+
+x-deploy-template: &deploy-template
+  resources:
+    limits:
+      memory: 2G
+  restart_policy:
+    condition: none
+
 services:
-  worker:
-    image: julia_worker
-    tty: true
-    stdin_open: true
+  format_worker:
+    <<: *worker-template
     volumes:
       - "../src:/opt/app"
-      - type: bind
-        source: ../ips
-        target: /opt/app/ips
-        read_only: false
+      - "../ips/format:/opt/app/ips"
     deploy:
-      replicas: 2
-      resources:
-        limits:
-          memory: 2G
-      restart_policy:
-        condition: none
-    environment:
-      - LOCAL=${LOCAL}
-      - NODE_ID=worker_{{.Task.Slot}}
-      - TASK_SLOT={{.Task.Slot}}
-    command: /bin/bash -c "echo $$(hostname -i) > /opt/app/ips/ip_$$TASK_SLOT.txt && /usr/sbin/sshd -D"
+      <<: *deploy-template
+      replicas: 1
+
+  resolution_worker:
+    <<: *worker-template
+    volumes:
+      - "../src:/opt/app"
+      - "../ips/resolution:/opt/app/ips"
+    deploy:
+      <<: *deploy-template
+      replicas: 1
+
+  size_worker:
+    <<: *worker-template
+    volumes:
+      - "../src:/opt/app"
+      - "../ips/size:/opt/app/ips"
+    deploy:
+      <<: *deploy-template
+      replicas: 1
 
   manager:
     image: julia_manager
@@ -30,19 +51,14 @@ services:
     stdin_open: true
     command: /bin/bash
     depends_on:
-      - worker
+      - format_worker
+      - resolution_worker
+      - size_worker
     volumes:
       - "../src:/opt/app"
-      - type: bind
-        source: ../ips
-        target: /opt/app/ips
-        read_only: true
+      - "../ips:/opt/app/ips:ro"
     deploy:
-      resources:
-        limits:
-          memory: 2G
-      restart_policy:
-        condition: none
+      <<: *deploy-template
     environment:
       - LOCAL=${LOCAL}
       - NODE_ID=manager

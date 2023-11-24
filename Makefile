@@ -1,6 +1,9 @@
 init:
 	mkdir -p ./.keys
 	mkdir -p ./ips
+	mkdir -p ./ips/format
+	mkdir -p ./ips/resolution
+	mkdir -p ./ips/size
 	ssh-keygen -t rsa -b 4096 -f ./.keys/manager_rsa -N ""
 .PHONY: init
 
@@ -19,7 +22,7 @@ deploy: remove
 .PHONY: deploy
 
 remove:
-	rm -f ./ips/*
+	rm -rf ./ips/*/*
 	if docker stack ls | grep -q ip_julia; then \
             docker stack rm ip_julia; \
 	fi
