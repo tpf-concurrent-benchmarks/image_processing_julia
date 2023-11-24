@@ -8,10 +8,27 @@ using .WorkerInitialization
 
 
 
-function workers_start( workers::Array, handler::Function, in_channel::RemoteChannel, out_channel::RemoteChannel )
+function start_worker_stage( workers::Array, handler::Function, in_channel::RemoteChannel, out_channel::RemoteChannel )
     for p in workers
         remote_do( worker_loop, p, handler, in_channel, out_channel)
     end
+end
+
+function start_pipeline()
+    println("Starting workers")
+    format_channel, resolution_channel, size_channel, result_channel = get_channels()
+    format_workers, resolution_workers, size_workers = get_workers()
+
+    # Start Format workers
+    start_worker_stage( format_workers, format_handler, format_channel, resolution_channel )
+    
+    # Start Resolution workers
+    start_worker_stage( resolution_workers, resolution_handler, resolution_channel, size_channel )
+    
+    # Start Size workers
+    start_worker_stage( size_workers, size_handler, size_channel, result_channel )
+
+    return format_channel, result_channel
 end
 
 function send_work( work_channel::RemoteChannel )
@@ -28,26 +45,33 @@ function await_results( result_channel::RemoteChannel )
     end
 end
 
+function stop_workers()
+    println("Stopping workers")
+    
+    worker_groups = get_workers_channels()
+
+    _stop_workers = (workers, channel) -> begin
+        for p in workers
+            put!(channel, stop_message)
+        end
+    end
+
+    for (workers, channel) in worker_groups
+        _stop_workers(workers, channel)
+    end
+
+end
+
     
 function main()
     
-    format_channel, resolution_channel, size_channel, result_channel, close_channels = get_channels()
-    format_workers, resolution_workers, size_workers, close_workers = get_workers()
-
-    # Start Format workers
-    workers_start( format_workers, format_handler, format_channel, resolution_channel )
+    input_channel, result_channel = start_pipeline()
     
-    # Start Resolution workers
-    workers_start( resolution_workers, resolution_handler, resolution_channel, size_channel )
-    
-    # Start Size workers
-    workers_start( size_workers, size_handler, size_channel, result_channel )
-    
-    send_work( format_channel )
+    send_work( input_channel )
     await_results( result_channel )
 
-    close_channels()
-    close_workers()
+    stop_workers()
+    close_pipeline()
 end
 
 main()

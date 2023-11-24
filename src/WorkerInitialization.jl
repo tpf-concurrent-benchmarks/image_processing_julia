@@ -2,7 +2,7 @@ module WorkerInitialization
 
 using Distributed
 
-export get_channels, get_workers
+export get_channels, get_workers, get_workers_channels, close_pipeline
 
 function add_type_workers(type::String)
     path = "ips/"*type
@@ -15,25 +15,27 @@ end
 format_workers = add_type_workers("format")
 resolution_workers = add_type_workers("resolution")
 size_workers = add_type_workers("size")
+
 close_workers = () -> rmprocs(workers())
 get_workers() = format_workers, resolution_workers, size_workers, close_workers
 
 
-function get_channels()
-    format_channel = RemoteChannel(()->Channel{Int}(32))
-    resolution_channel = RemoteChannel(()->Channel{Int}(32))
-    size_channel = RemoteChannel(()->Channel{Int}(32))
+# These RemoteChannels work similar to Queues
+format_channel = RemoteChannel(()->Channel{Int}(32))
+resolution_channel = RemoteChannel(()->Channel{Int}(32))
+size_channel = RemoteChannel(()->Channel{Int}(32))
+result_channel = RemoteChannel(()->Channel{Int}(32))
 
-    result_channel = RemoteChannel(()->Channel{Int}(32))
+close_channels = () -> for chan in [format_channel, resolution_channel, size_channel, result_channel]
+        close(chan)
+end
+get_channels() = format_channel, resolution_channel, size_channel, result_channel, close_channels
 
-    close_channels = () -> begin
-        close(format_channel)
-        close(resolution_channel)
-        close(size_channel)
-        close(result_channel)
-    end
+get_workers_channels() = [ (format_workers, format_channel), (resolution_workers, resolution_channel), (size_workers, size_channel) ]
 
-    return format_channel, resolution_channel, size_channel, result_channel, close_channels
+function close_pipeline()
+    close_channels()
+    close_workers()
 end
 
 end
