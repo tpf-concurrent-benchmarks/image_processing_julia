@@ -14,10 +14,20 @@ build:
 	docker build -t julia_worker -f ./docker/Dockerfile-worker .
 .PHONY: build
 
-
-deploy: remove
+_common_folders:
 	mkdir -p graphite
 	mkdir -p grafana_config
+	mkdir -p shared
+	mkdir -p shared/input
+	rm -rf shared/formatted || true
+	mkdir -p shared/formatted
+	rm -rf shared/scaled || true
+	mkdir -p shared/scaled
+	rm -rf shared/output || true
+	mkdir -p shared/output
+
+
+deploy: remove _common_folders
 	docker stack deploy -c docker/docker-compose.yaml ip_julia
 .PHONY: deploy
 

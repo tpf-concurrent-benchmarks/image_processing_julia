@@ -33,14 +33,22 @@ end
 
 function send_work( work_channel::RemoteChannel )
     println("Sending work")
-    for i in 1:10
-        put!(work_channel, i)
+
+    total_work = 0
+    input_dir = readdir("shared/input")
+
+    for filename in input_dir
+        file_path = "shared/input/"*filename
+        put!(work_channel, file_path)
+        total_work += 1
     end
+
+    total_work
 end
 
-function await_results( result_channel::RemoteChannel )
+function await_results( result_channel::RemoteChannel, total_work::Int )
     println("Awaiting results")
-    for i in 1:10
+    for i in 1:total_work
         println(take!(result_channel))
     end
 end
@@ -67,8 +75,8 @@ function main()
     
     input_channel, result_channel = start_pipeline()
     
-    send_work( input_channel )
-    await_results( result_channel )
+    total_work = send_work( input_channel )
+    await_results( result_channel, total_work )
 
     stop_workers()
     close_pipeline()

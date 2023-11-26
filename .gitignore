@@ -40,3 +40,4 @@ compilation/common/
 *.jar
 .keys
 ips
+shared

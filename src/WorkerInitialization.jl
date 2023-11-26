@@ -21,10 +21,10 @@ get_workers() = format_workers, resolution_workers, size_workers, close_workers
 
 
 # These RemoteChannels work similar to Queues
-format_channel = RemoteChannel(()->Channel{Int}(32))
-resolution_channel = RemoteChannel(()->Channel{Int}(32))
-size_channel = RemoteChannel(()->Channel{Int}(32))
-result_channel = RemoteChannel(()->Channel{Int}(32))
+format_channel = RemoteChannel(()->Channel{String}(32))
+resolution_channel = RemoteChannel(()->Channel{String}(32))
+size_channel = RemoteChannel(()->Channel{String}(32))
+result_channel = RemoteChannel(()->Channel{String}(32))
 
 close_channels = () -> for chan in [format_channel, resolution_channel, size_channel, result_channel]
     close(chan)
