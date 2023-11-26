@@ -51,6 +51,10 @@ function initialize( host::String, port::Integer, prefix::String )
   global statsd_client = Client(host, port, prefix)
 end
 
+function set_prefix( prefix::String )
+  statsd_client.prefix = prefix
+end
+
 function gauge( metric::String, value::Number )
   sc_gauge(statsd_client, metric, value)
 end
@@ -64,7 +68,7 @@ function runAndMeasure( f::Function, metric::String )
   res = f()
   elapsed = time() - start
   sc_timing(statsd_client, metric, elapsed)
-  return res
+  return res, elapsed
 end
 
 end

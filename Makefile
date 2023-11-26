@@ -16,7 +16,7 @@ build:
 
 _common_folders:
 	mkdir -p graphite
-	mkdir -p grafana_config
+	mkdir -p configs/grafana_config
 	mkdir -p shared
 	mkdir -p shared/input
 	rm -rf shared/formatted || true

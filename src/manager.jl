@@ -11,13 +11,13 @@ using .WorkerInitialization
 
 @everywhere begin
     const config = Configs.Config("resources/config.json")
-    #StatsLogger.initialize(config.logger.ip, config.logger.port, config.logger.prefix)
+    StatsLogger.initialize(config.logger.ip, config.logger.port, config.logger.prefix)
 end
 
 
-function start_worker_stage( workers::Array, handler::Function, in_channel::RemoteChannel, out_channel::RemoteChannel )
-    for p in workers
-        remote_do( worker_loop, p, handler, in_channel, out_channel)
+function start_worker_stage( workers::Array, handler::Function, in_channel::RemoteChannel, out_channel::RemoteChannel, type="worker" )
+    for (i, p) in enumerate(workers)
+        remote_do( worker_loop, p, handler, in_channel, out_channel, string(type, "_", i) )
     end
 end
 
@@ -27,13 +27,13 @@ function start_pipeline()
     format_workers, resolution_workers, size_workers = get_workers()
 
     # Start Format workers
-    start_worker_stage( format_workers, format_handler, format_channel, resolution_channel )
+    start_worker_stage( format_workers, format_handler, format_channel, resolution_channel, "format_worker" )
     
     # Start Resolution workers
-    start_worker_stage( resolution_workers, resolution_handler, resolution_channel, size_channel )
+    start_worker_stage( resolution_workers, resolution_handler, resolution_channel, size_channel, "resolution_worker" )
     
     # Start Size workers
-    start_worker_stage( size_workers, size_handler, size_channel, result_channel )
+    start_worker_stage( size_workers, size_handler, size_channel, result_channel, "size_worker" )
 
     return format_channel, result_channel
 end
@@ -101,4 +101,6 @@ function main()
     close_pipeline()
 end
 
-main()
+
+_, elapsed = StatsLogger.runAndMeasure(main, "completion_time")
+println("Completed in $elapsed seconds")

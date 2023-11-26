@@ -3,21 +3,26 @@ module Workers
 using FileIO
 using Images
 using ..Configs
+import ..StatsLogger
 
 export worker_loop, format_handler, resolution_handler, size_handler, stop_message
 
 const stop_message::String = "STOP"
 
-function worker_loop(message_handler::Function, in_channel, out_channel)
+function worker_loop(message_handler::Function, in_channel, out_channel, name=nothing)
 
     config = Config("resources/config.json")
+    !isnothing(name) && StatsLogger.set_prefix(name)
 
     while true
         message = take!(in_channel)
         if message == stop_message
             break
         end
-        result = message_handler(message, config.worker)
+        result, _elapsed = StatsLogger.runAndMeasure("work_time") do
+            message_handler(message, config.worker)
+        end
+        StatsLogger.increment("results_produced")
         put!(out_channel, result)
     end
 end
