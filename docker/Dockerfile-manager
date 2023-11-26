@@ -11,7 +11,9 @@ RUN sed -i 's/#   StrictHostKeyChecking ask/StrictHostKeyChecking no/' /etc/ssh/
 COPY ./.keys/manager_rsa /root/.ssh/id_rsa
 RUN chmod 600 /root/.ssh/id_rsa
 
-RUN julia -e 'using Pkg; Pkg.add("ProgressMeter"); Pkg.add("Statsd"); Pkg.add("JSON")'
+RUN julia -e 'using Pkg; Pkg.add("ProgressMeter"); Pkg.add("Statsd");'
+RUN julia -e 'using Pkg; Pkg.add("FileIO"); Pkg.add("Images");'
+RUN julia -e 'using Pkg; Pkg.add("ImageMagick");'
 
 WORKDIR /opt/app
 
