@@ -46,9 +46,18 @@ function send_work( work_channel::RemoteChannel )
     total_work
 end
 
-function await_results( result_channel::RemoteChannel, total_work::Int )
+function await_results(result_channel::RemoteChannel, send_work_task::Task)
     println("Awaiting results")
-    for i in 1:total_work
+    consumed_tasks = 0
+    
+    while !istaskdone(send_work_task) || isready(result_channel)
+        _result = take!(result_channel)
+        consumed_tasks += 1
+    end
+
+    remaining_tasks = fetch(send_work_task) - consumed_tasks
+
+    for i in 1:remaining_tasks
         _result = take!(result_channel)
     end
 end
@@ -75,8 +84,8 @@ function main()
     
     input_channel, result_channel = start_pipeline()
     
-    total_work = send_work( input_channel )
-    await_results( result_channel, total_work )
+    send_work_task = @async send_work( input_channel )
+    await_results( result_channel, send_work_task )
 
     stop_workers()
     close_pipeline()
