@@ -1,6 +1,7 @@
 module Configs
 
 import JSON
+using Distributed
 
 export Config, WorkerConfig, LoggerConfig
 
@@ -26,18 +27,20 @@ end
 struct LoggerConfig
     ip::String
     port::Int
+    prefix::String
 
     function LoggerConfig( config_json::Dict )
         ip = get(config_json, "ip", "graphite")
         port = get(config_json, "port", 8125)
-        
-        new(ip, port)
+        prefix = get(ENV, "NODE_ID", "worker_" * string(myid()))
+
+        new(ip, port, prefix)
     end
 end
 
 struct Config
-    worker_config::WorkerConfig
-    logger_config::LoggerConfig
+    worker::WorkerConfig
+    logger::LoggerConfig
     work_dir::String
 
     function Config( config_path::String )

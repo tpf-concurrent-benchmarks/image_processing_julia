@@ -10,14 +10,14 @@ const stop_message::String = "STOP"
 
 function worker_loop(message_handler::Function, in_channel, out_channel)
 
-    config = Config("config.json")
+    config = Config("resources/config.json")
 
     while true
         message = take!(in_channel)
         if message == stop_message
             break
         end
-        result = message_handler(message, config.worker_config)
+        result = message_handler(message, config.worker)
         put!(out_channel, result)
     end
 end

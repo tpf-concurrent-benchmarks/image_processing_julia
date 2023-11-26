@@ -4,10 +4,15 @@ include("WorkerInitialization.jl")
 using .WorkerInitialization
 
 @everywhere include("Configs.jl")
-@everywhere using .Configs
+@everywhere include("StatsLogger.jl")
 
 @everywhere include("Workers.jl")
 @everywhere using .Workers
+
+@everywhere begin
+    const config = Configs.Config("resources/config.json")
+    #StatsLogger.initialize(config.logger.ip, config.logger.port, config.logger.prefix)
+end
 
 
 function start_worker_stage( workers::Array, handler::Function, in_channel::RemoteChannel, out_channel::RemoteChannel )
