@@ -32,22 +32,21 @@ end
 function worker_loop(message_handler::Function, in_channel, out_channel)
 
     config = Config("config.json")
-    println("Config: ", config)
 
     while true
         message = take!(in_channel)
         if message == stop_message
             break
         end
-        result = message_handler(message)
+        result = message_handler(message, config)
         put!(out_channel, result)
     end
 end
 
-function format_handler( input_path::String )
+function format_handler( input_path::String, config::Config )
     file_name = split(input_path, "/")[end]
     file_name_no_ext = split(file_name, ".")[1]
-    output_path = "shared/formatted/"*file_name_no_ext*".png"
+    output_path = "shared/formatted/"*file_name_no_ext*"."*config.format
 
     # Save the image as a PNG
     img = load(input_path)
@@ -56,27 +55,23 @@ function format_handler( input_path::String )
     output_path
 end
 
-function resolution_handler( input_path::String )
+function resolution_handler( input_path::String, config::Config )
     file_name = split(input_path, "/")[end]
     output_path = "shared/scaled/"*file_name
 
-    target_resolution = (100, 100)
-
     img = load(input_path)
-    resized_img = imresize(img, target_resolution)
+    resized_img = imresize(img, config.resolution)
     save(output_path, resized_img)
 
     output_path
 end
 
-function size_handler( input_path::String )
+function size_handler( input_path::String, config::Config )
     file_name = split(input_path, "/")[end]
     output_path = "shared/output/"*file_name
 
-    target_size = (30, 30)
-
     img = load(input_path)
-    resized_img = center_crop(img, target_size)
+    resized_img = center_crop(img, config.size)
     save(output_path, resized_img)
 
     output_path
