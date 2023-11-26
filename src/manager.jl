@@ -17,7 +17,7 @@ end
 
 function start_worker_stage( workers::Array, handler::Function, in_channel::RemoteChannel, out_channel::RemoteChannel, type="worker" )
     for (i, p) in enumerate(workers)
-        remote_do( worker_loop, p, handler, in_channel, out_channel, string(type, "_", i) )
+        remote_do( worker_loop, p, handler, in_channel, out_channel, string(type, "_", i-1) )
     end
 end
 
