@@ -49,7 +49,7 @@ end
 function await_results( result_channel::RemoteChannel, total_work::Int )
     println("Awaiting results")
     for i in 1:total_work
-        println(take!(result_channel))
+        _result = take!(result_channel)
     end
 end
 

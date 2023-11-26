@@ -27,7 +27,7 @@ _common_folders:
 	mkdir -p shared/output
 
 
-deploy: remove _common_folders
+deploy: _common_folders
 	docker stack deploy -c docker/docker-compose.yaml ip_julia
 .PHONY: deploy
 
