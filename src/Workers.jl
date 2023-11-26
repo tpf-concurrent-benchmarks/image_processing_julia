@@ -1,33 +1,12 @@
 module Workers
 
-import JSON
 using FileIO
 using Images
+using ..Configs
 
 export worker_loop, format_handler, resolution_handler, size_handler, stop_message
 
 const stop_message::String = "STOP"
-
-
-struct Config
-    format::String
-    resolution::Tuple{Int, Int}
-    size::Tuple{Int, Int}
-
-    function Config( config_path::String )
-        data = JSON.parsefile(config_path)
-        
-        format = get(data, "format", "png")
-
-        _resolution = get(data, "resolution", "150x150")
-        resolution = Tuple(parse.(Int, split(_resolution, "x")))
-
-        _size = get(data, "size", "50x50")
-        size = Tuple(parse.(Int, split(_size, "x")))
-
-        new(format, resolution, size)
-    end
-end
 
 function worker_loop(message_handler::Function, in_channel, out_channel)
 
@@ -38,12 +17,12 @@ function worker_loop(message_handler::Function, in_channel, out_channel)
         if message == stop_message
             break
         end
-        result = message_handler(message, config)
+        result = message_handler(message, config.worker_config)
         put!(out_channel, result)
     end
 end
 
-function format_handler( input_path::String, config::Config )
+function format_handler( input_path::String, config::WorkerConfig )
     file_name = split(input_path, "/")[end]
     file_name_no_ext = split(file_name, ".")[1]
     output_path = "shared/formatted/"*file_name_no_ext*"."*config.format
@@ -55,7 +34,7 @@ function format_handler( input_path::String, config::Config )
     output_path
 end
 
-function resolution_handler( input_path::String, config::Config )
+function resolution_handler( input_path::String, config::WorkerConfig )
     file_name = split(input_path, "/")[end]
     output_path = "shared/scaled/"*file_name
 
@@ -66,7 +45,7 @@ function resolution_handler( input_path::String, config::Config )
     output_path
 end
 
-function size_handler( input_path::String, config::Config )
+function size_handler( input_path::String, config::WorkerConfig )
     file_name = split(input_path, "/")[end]
     output_path = "shared/output/"*file_name
 

@@ -1,5 +1,12 @@
 {
-  "format": "png",
-  "resolution": "100x100",
-  "size": "30x30"
+  "worker": {
+    "format": "png",
+    "resolution": "100x100",
+    "size": "30x30"
+  },
+  "logger": {
+    "ip": "graphite",
+    "port": 8125
+  },
+  "work_dir": "shared/input"
 }

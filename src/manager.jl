@@ -3,6 +3,9 @@ using Distributed
 include("WorkerInitialization.jl")
 using .WorkerInitialization
 
+@everywhere include("Configs.jl")
+@everywhere using .Configs
+
 @everywhere include("Workers.jl")
 @everywhere using .Workers
 
@@ -54,11 +57,14 @@ function await_results(result_channel::RemoteChannel, send_work_task::Task)
         consumed_tasks += 1
     end
 
-    remaining_tasks = fetch(send_work_task) - consumed_tasks
+    total_tasks = fetch(send_work_task)
+    remaining_tasks = total_tasks - consumed_tasks
 
     for i in 1:remaining_tasks
         _result = take!(result_channel)
     end
+
+    println("Received $total_tasks results")
 end
 
 function stop_workers()
