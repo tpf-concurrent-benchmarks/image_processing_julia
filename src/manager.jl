@@ -7,7 +7,6 @@ using .WorkerInitialization
 @everywhere using .Workers
 
 
-
 function start_worker_stage( workers::Array, handler::Function, in_channel::RemoteChannel, out_channel::RemoteChannel )
     for p in workers
         remote_do( worker_loop, p, handler, in_channel, out_channel)
@@ -49,7 +48,7 @@ end
 function await_results(result_channel::RemoteChannel, send_work_task::Task)
     println("Awaiting results")
     consumed_tasks = 0
-    
+
     while !istaskdone(send_work_task) || isready(result_channel)
         _result = take!(result_channel)
         consumed_tasks += 1
