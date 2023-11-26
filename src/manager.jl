@@ -57,6 +57,8 @@ function await_results(result_channel::RemoteChannel, send_work_task::Task)
     println("Awaiting results")
     consumed_tasks = 0
 
+    # Consume tasks untill finished sending work or there are pending results
+    # Sending and Consuming is done in parallel, so Channels do not fill up
     while !istaskdone(send_work_task) || isready(result_channel)
         _result = take!(result_channel)
         consumed_tasks += 1
