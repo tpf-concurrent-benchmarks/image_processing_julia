@@ -1,6 +1,10 @@
 FROM julia:latest
 
-# Install SSH server
+RUN julia -e 'using Pkg; Pkg.add("ProgressMeter"); Pkg.add("Statsd");'
+RUN julia -e 'using Pkg; Pkg.add("FileIO"); Pkg.add("Images");'
+RUN julia -e 'using Pkg; Pkg.add("ImageMagick");'
+RUN julia -e 'using Pkg; Pkg.add("JSON");'
+
 RUN apt-get update && \
     apt-get install -y openssh-server
 
@@ -13,19 +17,12 @@ RUN ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa && \
 RUN echo "cd /opt/app" >> ~/.bashrc
 
 
-# Copy manager SSH public key
 COPY ./.keys/manager_rsa.pub /root/.ssh/authorized_keys
 RUN chmod 600 /root/.ssh/authorized_keys
-
-RUN julia -e 'using Pkg; Pkg.add("ProgressMeter"); Pkg.add("Statsd");'
-RUN julia -e 'using Pkg; Pkg.add("FileIO"); Pkg.add("Images");'
-RUN julia -e 'using Pkg; Pkg.add("ImageMagick");'
-RUN julia -e 'using Pkg; Pkg.add("JSON");'
 
 
 EXPOSE 22
 
 WORKDIR /opt/app
 
-# Start the SSH server
 CMD ["/usr/sbin/sshd", "-D"]

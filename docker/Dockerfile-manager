@@ -1,20 +1,17 @@
-# Use a Julia base image
 FROM julia:latest
-
-# Install SSH server
-RUN apt-get update && \
-    apt-get install -y openssh-server
-
-RUN sed -i 's/#   StrictHostKeyChecking ask/StrictHostKeyChecking no/' /etc/ssh/ssh_config
-
-# Copy own SSH private key
-COPY ./.keys/manager_rsa /root/.ssh/id_rsa
-RUN chmod 600 /root/.ssh/id_rsa
 
 RUN julia -e 'using Pkg; Pkg.add("ProgressMeter"); Pkg.add("Statsd");'
 RUN julia -e 'using Pkg; Pkg.add("FileIO"); Pkg.add("Images");'
 RUN julia -e 'using Pkg; Pkg.add("ImageMagick");'
 RUN julia -e 'using Pkg; Pkg.add("JSON");'
+
+RUN apt-get update && \
+    apt-get install -y openssh-server
+
+RUN sed -i 's/#   StrictHostKeyChecking ask/StrictHostKeyChecking no/' /etc/ssh/ssh_config
+
+COPY ./.keys/manager_rsa /root/.ssh/id_rsa
+RUN chmod 600 /root/.ssh/id_rsa
 
 
 WORKDIR /opt/app
