@@ -17,7 +17,7 @@ end
 
 function start_worker_stage( workers::Array, handler::Function, in_channel::RemoteChannel, out_channel::RemoteChannel, type="worker" )
     for (i, p) in enumerate(workers)
-        remote_do( worker_loop, p, handler, in_channel, out_channel, string(type, "_", i-1) )
+        remote_do( worker_loop, p, handler, in_channel, out_channel, string(type, ".", i-1) )
     end
 end
 
@@ -27,13 +27,13 @@ function start_pipeline()
     format_workers, resolution_workers, size_workers = get_workers()
 
     # Start Format workers
-    start_worker_stage( format_workers, format_handler, format_channel, resolution_channel, "format_worker" )
+    start_worker_stage( format_workers, format_handler, format_channel, resolution_channel, "format" )
     
     # Start Resolution workers
-    start_worker_stage( resolution_workers, resolution_handler, resolution_channel, size_channel, "resolution_worker" )
+    start_worker_stage( resolution_workers, resolution_handler, resolution_channel, size_channel, "resolution" )
     
     # Start Size workers
-    start_worker_stage( size_workers, size_handler, size_channel, result_channel, "size_worker" )
+    start_worker_stage( size_workers, size_handler, size_channel, result_channel, "size" )
 
     return format_channel, result_channel
 end
