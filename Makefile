@@ -28,7 +28,9 @@ _common_folders:
 
 
 deploy: _common_folders
-	docker stack deploy -c docker/docker-compose.yaml ip_julia
+	until \
+	docker stack deploy -c docker/docker-compose.yaml ip_julia; \
+	do sleep 1; done
 .PHONY: deploy
 
 remove:
