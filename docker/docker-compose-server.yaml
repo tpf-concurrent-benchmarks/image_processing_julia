@@ -1,0 +1,65 @@
+version: "3.7"
+
+x-worker-template: &worker-template
+  image: image_processing_julia_worker
+  tty: true
+  stdin_open: true
+  environment:
+    - LOCAL=${LOCAL}
+    - NODE_ID=worker_{{.Task.Slot}}
+    - TASK_SLOT={{.Task.Slot}}
+  command: /bin/bash -c "/usr/sbin/sshd -D"
+
+x-deploy-template: &deploy-template
+  resources:
+    limits:
+      memory: 2G
+  restart_policy:
+    condition: none
+
+services:
+  format_worker:
+    <<: *worker-template
+    volumes:
+      - "../src:/opt/app"
+      - "../shared:/opt/app/shared"
+    deploy:
+      <<: *deploy-template
+      replicas: ${FORMAT_WORKER_REPLICAS}
+
+  resolution_worker:
+    <<: *worker-template
+    volumes:
+      - "../src:/opt/app"
+      - "../shared:/opt/app/shared"
+    deploy:
+      <<: *deploy-template
+      replicas: ${RESOLUTION_WORKER_REPLICAS}
+
+  size_worker:
+    <<: *worker-template
+    volumes:
+      - "../src:/opt/app"
+      - "../shared:/opt/app/shared"
+    deploy:
+      <<: *deploy-template
+      replicas: ${SIZE_WORKER_REPLICAS}
+
+  manager:
+    image: image_processing_julia_manager
+    tty: true
+    stdin_open: true
+    command: /bin/bash
+    depends_on:
+      - format_worker
+      - resolution_worker
+      - size_worker
+    volumes:
+      - "../src:/opt/app"
+      - "../ips:/opt/app/ips:ro"
+      - "../shared:/opt/app/shared"
+    deploy:
+      <<: *deploy-template
+    environment:
+      - LOCAL=${LOCAL}
+      - NODE_ID=manager

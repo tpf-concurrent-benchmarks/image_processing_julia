@@ -1,0 +1,80 @@
+version: "3.7"
+
+services:
+  graphite:
+    image: graphiteapp/graphite-statsd:1.1.10-4
+    volumes:
+      - "../configs/statsd.config.js:/opt/statsd/config.js:ro"
+      - "../configs/graphite.storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf:ro"
+      - "../configs/graphite.carbon.conf:/opt/graphite/conf/carbon.conf:ro"
+      - "../graphite:/opt/graphite/storage/:rw"
+    ports:
+      - "8080:8080"
+      - "8125:8125/udp"
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "8081:3000"
+    volumes:
+      - "grafana_config:/var/lib/grafana"
+    depends_on:
+      - graphite
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  renderer:
+    image: grafana/grafana-image-renderer:latest
+    ports:
+      - "8082:8081"
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    command: >
+      -storage_driver="statsd"
+      -storage_driver_host="graphite:8125"
+      -storage_driver_db="cadvisor"
+      -storage_driver_buffer_duration="10s"
+      --enable_metrics=cpu,cpuLoad,disk,diskIO,memory,network
+    depends_on:
+      - graphite
+    volumes:
+     - "/:/rootfs:ro"
+     - "/var/run:/var/run:rw"
+     - "/sys:/sys:ro"
+     - "/var/lib/docker/:/var/lib/docker:ro"
+     - "/dev/disk/:/dev/disk:ro"
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  ips_getter:
+    image: efoppiano/ips_getter:v0.1
+    command: /bin/bash -c "sleep 5 && ./get_ips.sh"
+    volumes:
+      - "../get_ips.sh:/get_ips.sh:ro"
+      - type: bind
+        source: ../ips
+        target: /ips
+        read_only: false
+    deploy:
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.role == manager
+
+volumes:
+  grafana_config:
+    external: true
