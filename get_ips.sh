@@ -1,8 +1,5 @@
 #!/bin/bash
 
-apt-get update
-apt-get install -y dnsutils
-
 worker_types=("format" "resolution" "size")
 
 for worker_type in "${worker_types[@]}"; do
