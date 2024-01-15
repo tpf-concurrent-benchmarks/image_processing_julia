@@ -23,11 +23,20 @@ _common_folders:
 	mkdir -p configs/grafana_config
 	mkdir -p shared
 	mkdir -p shared/input
-	rm -rf shared/formatted || true
 	mkdir -p shared/formatted
-	rm -rf shared/scaled || true
 	mkdir -p shared/scaled
-	rm -rf shared/output || true
+	mkdir -p shared/output
+
+	mv shared/formatted shared/formatted.old || true
+	rm -rf shared/formatted &
+	mkdir -p shared/scaled
+
+	mv shared/scaled shared/scaled.old || true
+	rm -rf shared/scaled &
+	mkdir -p shared/scaled
+
+	mv shared/output shared/output.old || true
+	rm -rf shared/output &
 	mkdir -p shared/output
 
 
