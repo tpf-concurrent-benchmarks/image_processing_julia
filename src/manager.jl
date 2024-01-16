@@ -95,14 +95,19 @@ end
 function main()
     
     input_channel, result_channel = start_pipeline()
+
+    start = time()
     
     send_work_task = @async send_work( input_channel )
     await_results( result_channel, send_work_task )
+
+    elapsed = 1000 * (time() - start)
+    StatsLogger.gauge("completion_time", elapsed)
+    
+    println("Completed in $elapsed seconds")
 
     stop_workers()
     close_pipeline()
 end
 
-
-_, elapsed = StatsLogger.runAndMeasure(main, "completion_time")
-println("Completed in $elapsed seconds")
+main()
