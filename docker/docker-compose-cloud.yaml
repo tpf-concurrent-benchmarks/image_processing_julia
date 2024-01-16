@@ -22,7 +22,7 @@ services:
     <<: *worker-template
     volumes:
       - "../src:/opt/app"
-      - "../shared:/opt/app/shared"
+      - "nfs:/opt/app/shared"
     deploy:
       <<: *deploy-template
       replicas: ${FORMAT_WORKER_REPLICAS}
@@ -31,7 +31,7 @@ services:
     <<: *worker-template
     volumes:
       - "../src:/opt/app"
-      - "../shared:/opt/app/shared"
+      - "nfs:/opt/app/shared"
     deploy:
       <<: *deploy-template
       replicas: ${RESOLUTION_WORKER_REPLICAS}
@@ -40,7 +40,7 @@ services:
     <<: *worker-template
     volumes:
       - "../src:/opt/app"
-      - "../shared:/opt/app/shared"
+      - "nfs:/opt/app/shared"
     deploy:
       <<: *deploy-template
       replicas: ${SIZE_WORKER_REPLICAS}
