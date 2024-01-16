@@ -17,7 +17,7 @@ services:
           - node.role == manager
 
   grafana:
-    image: grafana/grafana:latest
+    image: efoppiano/grafana:0.1
     ports:
       - "8081:3000"
     volumes:
@@ -55,9 +55,12 @@ services:
      - "/var/lib/docker/:/var/lib/docker:ro"
      - "/dev/disk/:/dev/disk:ro"
     deploy:
-      placement:
-        constraints:
-          - node.role == manager
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
 
   ips_getter:
     image: efoppiano/ips_getter:v0.1
