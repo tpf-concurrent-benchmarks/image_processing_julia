@@ -21,22 +21,23 @@ build:
 _common_folders:
 	mkdir -p graphite
 	mkdir -p configs/grafana_config
+	mkdir -p ./ips/format
+	mkdir -p ./ips/resolution
+	mkdir -p ./ips/size
+
 	mkdir -p shared
 	mkdir -p shared/input
 	mkdir -p shared/formatted
 	mkdir -p shared/scaled
 	mkdir -p shared/output
 
-	mv shared/formatted shared/formatted.old || true
-	rm -rf shared/formatted &
+	rm -rf shared/formatted
 	mkdir -p shared/scaled
 
-	mv shared/scaled shared/scaled.old || true
-	rm -rf shared/scaled &
+	rm -rf shared/scaled
 	mkdir -p shared/scaled
 
-	mv shared/output shared/output.old || true
-	rm -rf shared/output &
+	rm -rf shared/output
 	mkdir -p shared/output
 
 
