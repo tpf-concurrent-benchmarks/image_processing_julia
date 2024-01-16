@@ -89,7 +89,5 @@ deploy_cloud: remove
 	NFS_SERVER_IP=$(NFS_SERVER_IP) \
 	NFS_SERVER_PATH=$(NFS_SERVER_PATH) \
 	sudo -E docker stack deploy \
-	-c docker/rabbitmq.yaml \
-	-c docker/common.yaml \
-	-c docker/cloud.yaml ip_julia; do sleep 1; done
+	-c docker/docker-compose-cloud.yaml ip_julia; do sleep 1; done
 .PHONY: deploy_cloud
