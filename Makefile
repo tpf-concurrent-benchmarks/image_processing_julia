@@ -9,6 +9,7 @@ init:
 	mkdir -p ./ips/resolution
 	mkdir -p ./ips/size
 	ssh-keygen -t rsa -b 4096 -f ./.keys/manager_rsa -N ""
+	docker swarm init
 .PHONY: init
 
 build:
@@ -40,6 +41,8 @@ _common_folders:
 	rm -rf shared/output
 	mkdir -p shared/output
 
+template_data: _common_folders
+	wget https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/481px-Cat03.jpg -P shared/input/
 
 deploy: _common_folders
 	until \
